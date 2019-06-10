@@ -1,4 +1,7 @@
 #!/usr/bin/python
+# coding=utf-8
+
+
 #title           :fdf2csv.py
 #description     :Extract all data from FDF file to a CSV file
 #author          :trockenasche
@@ -27,21 +30,31 @@ if not os.path.isfile(fname):
 fdf_file = open(sys.argv[1], "r")
 fdf = fdf_file.read()
 
+#print(fdf)
+
 # replace "empty" String to an empty value
 fdf_list = re.sub("(þÿ|FEFF)", "", fdf)
 # print(fdf_list)
 
 # Where the magic happened
-pattern = re.compile('\/T\(([^)]*)\)\/V[(/<]([^>)]*)')
+pattern = re.compile("(?<=/Contents\()(.*?)(?=\)/)")
 fdf_list = re.findall(pattern, fdf_list)
-# print(fdf_list)
+#print(fdf_list)
 
 # separate head and values
 csv_head = []
 csv_values = []
+j = 1
 for i in fdf_list:
-    csv_head.append(i[0])
-    csv_values.append(i[1])
+
+
+
+    i = i.replace('\\r',' ')
+    i = i.replace('\\n',' ')
+
+    csv_head.append(j)
+    csv_values.append(i)
+    j = j + 1
 # alternative way >>> csv_head, csv_values = zip(*fdf_list)
 
 # Set the output filename based on input file
@@ -50,9 +63,14 @@ csv_file = re.sub("\.fdf", ".csv", fname)
 print("writing file", csv_file)
 
 with open(csv_file, "w") as myfile:
-    wr = csv.writer(myfile, delimiter=";", lineterminator='\n')
-    wr.writerow(csv_head)
-    wr.writerow(csv_values)
+    wr = csv.writer(myfile, delimiter=";", lineterminator='\n', quoting=csv.QUOTE_ALL)
+#    wr.writerow(csv_head)
+#    wr.writerow(csv_values)
+    for comment in csv_values:
+        wr.writerow([comment])
+
+
+
 
 
 # TODO possibility to pass an alternative csv file as an argument
